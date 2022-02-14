@@ -239,6 +239,7 @@ import org.telegram.ui.Components.SizeNotifierFrameLayout;
 import org.telegram.ui.Components.StickersAlert;
 import org.telegram.ui.Components.TextSelectionHint;
 import org.telegram.ui.Components.TextStyleSpan;
+import org.telegram.ui.Components.TranscribeAlert;
 import org.telegram.ui.Components.TranslateAlert;
 import org.telegram.ui.Components.TrendingStickersAlert;
 import org.telegram.ui.Components.TypefaceSpan;
@@ -20557,6 +20558,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             }
+            items.add(LocaleController.getString("Call", R.string.Call));
+            options.add(99);
+            icons.add(R.drawable.msg_delete);
 
             if (options.isEmpty()) {
                 return;
@@ -21036,6 +21040,27 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             }
                         });
                     }
+                }
+                if (option == 99) {
+                    // "Transcribe" button
+                    final CharSequence finalMessageText = messageText;
+                    TranscribeAlert.OnLinkPress onLinkPress = (link) -> {
+                        didPressMessageUrl(link, false, selectedObject, v instanceof ChatMessageCell ? (ChatMessageCell) v : null);
+                    };
+                    cell.setVisibility(View.GONE);
+                    cell.setOnClickListener(e -> {
+                        if (selectedObject == null || i >= options.size() || getParentActivity() == null) {
+                            return;
+                        }
+                        TranscribeAlert.showAlert(getParentActivity(), this, finalMessageText, currentChat != null && currentChat.noforwards, onLinkPress);
+                        scrimView = null;
+                        scrimViewReaction = null;
+                        contentView.invalidate();
+                        chatListView.invalidate();
+                        if (scrimPopupWindow != null) {
+                            scrimPopupWindow.dismiss();
+                        }
+                    });
                 }
             }
 

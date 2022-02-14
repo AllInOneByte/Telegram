@@ -1,0 +1,14 @@
+name: Decrypt secrets at checkout
+
+on: push
+
+jobs:
+  my-job:
+    name: Decrypt job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Decrypt API key and hash
+        run: ./.github/scripts/decrypt_secret.sh
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.SECRETS_PASSPHRASE }}

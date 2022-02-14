@@ -73,9 +73,9 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
-public class TranslateAlert extends Dialog {
+public class TranscribeAlert extends Dialog {
     private FrameLayout bulletinContainer;
-//    private FrameLayout statusBar;
+    //    private FrameLayout statusBar;
     private FrameLayout contentView;
     private FrameLayout container;
     private TextView titleView;
@@ -89,7 +89,7 @@ public class TranslateAlert extends Dialog {
     private boolean scrollViewScrollable = false;
     private NestedScrollView scrollView;
     private LinearLayout textsView;
-//    private TextView translateMoreView;
+    //    private TextView translateMoreView;
     private TextView buttonTextView;
     private FrameLayout buttonView;
     private FrameLayout buttonShadowView;
@@ -118,10 +118,10 @@ public class TranslateAlert extends Dialog {
         titleView.setScaleX(lerp(1f, 0.9473f, t));
         titleView.setScaleY(lerp(1f, 0.9473f, t));
         titleLayout.setMargins(
-            dp(lerp(22, 72, t)),
-            dp(lerp(22, 8, t)),
-            titleLayout.rightMargin,
-            titleLayout.bottomMargin
+                dp(lerp(22, 72, t)),
+                dp(lerp(22, 8, t)),
+                titleLayout.rightMargin,
+                titleLayout.bottomMargin
         );
         titleView.setLayoutParams(titleLayout);
 //        titleView.forceLayout();
@@ -131,10 +131,10 @@ public class TranslateAlert extends Dialog {
 //        statusBar.setScaleY(Math.max(0, (t - .8f) / .2f));
 
         subtitleLayout.setMargins(
-            dp(lerp(22, 72, t)) - subtitleFromView.padHorz,
-            dp(lerp(47, 30, t)) - subtitleFromView.padVert,
-            subtitleLayout.rightMargin,
-            subtitleLayout.bottomMargin
+                dp(lerp(22, 72, t)) - subtitleFromView.padHorz,
+                dp(lerp(47, 30, t)) - subtitleFromView.padVert,
+                subtitleLayout.rightMargin,
+                subtitleLayout.bottomMargin
         );
         subtitleView.setLayoutParams(subtitleLayout);
 //        subtitleView.forceLayout();
@@ -150,10 +150,10 @@ public class TranslateAlert extends Dialog {
 //        header.forceLayout();
 
         scrollViewLayout.setMargins(
-            scrollViewLayout.leftMargin,
-            (int) lerp(dp(70), dp(56), t),
-            scrollViewLayout.rightMargin,
-            scrollViewLayout.bottomMargin
+                scrollViewLayout.leftMargin,
+                (int) lerp(dp(70), dp(56), t),
+                scrollViewLayout.rightMargin,
+                scrollViewLayout.bottomMargin
         );
         scrollView.setLayoutParams(scrollViewLayout);
 
@@ -204,17 +204,17 @@ public class TranslateAlert extends Dialog {
     private int textsViewMinHeight = 0;
     private int minHeight() {
         return (textsView == null ? 0 : textsView.getMeasuredHeight()) + dp(
-            66 + // header
-            1 +  // button separator
-            16 + // button top padding
-            48 + // button
-            16   // button bottom padding
+                66 + // header
+                        1 +  // button separator
+                        16 + // button top padding
+                        48 + // button
+                        16   // button bottom padding
         );
     }
     private boolean canExpand() {
         return (
-            textsView.getChildCount() < textBlocks.size() ||
-            minHeight() >= (AndroidUtilities.displayMetrics.heightPixels * heightMaxPercent) //||
+                textsView.getChildCount() < textBlocks.size() ||
+                        minHeight() >= (AndroidUtilities.displayMetrics.heightPixels * heightMaxPercent) //||
 //            (scrollView.canScrollVertically(1) || scrollView.canScrollVertically(-1))
         ) && textsView.getChildCount() > 0 && ((LoadingTextView) textsView.getChildAt(0)).loaded;
     }
@@ -235,19 +235,16 @@ public class TranslateAlert extends Dialog {
     private int scrollShouldBe = -1;
     private boolean allowScroll = true;
     private ValueAnimator scrollerToBottom = null;
-    private String fromLanguage, toLanguage;
     private CharSequence text;
     private BaseFragment fragment;
     private boolean noforwards;
     private OnLinkPress onLinkPress = null;
-    public TranslateAlert(BaseFragment fragment, Context context, String fromLanguage, String toLanguage, CharSequence text, boolean noforwards, OnLinkPress onLinkPress) {
+    public TranscribeAlert(BaseFragment fragment, Context context, CharSequence text, boolean noforwards, OnLinkPress onLinkPress) {
         super(context, R.style.TransparentDialog);
 
         this.onLinkPress = onLinkPress;
         this.noforwards = noforwards;
         this.fragment = fragment;
-        this.fromLanguage = fromLanguage != null && fromLanguage.equals("und") ? "auto" : fromLanguage;
-        this.toLanguage = toLanguage;
         this.text = text;
         this.textBlocks = cutInBlocks(text, 1024);
 
@@ -303,14 +300,14 @@ public class TranslateAlert extends Dialog {
                 int height = (int) (fromHeight + (AndroidUtilities.displayMetrics.heightPixels - fromHeight) * containerOpenAnimationT);
                 updateCanExpand();
                 super.onMeasure(
-                    MeasureSpec.makeMeasureSpec(
-                        (int) Math.max(fullWidth * 0.8f, Math.min(dp(480), fullWidth)),
-                        MeasureSpec.getMode(widthMeasureSpec)
-                    ),
-                    MeasureSpec.makeMeasureSpec(
-                        height,
-                        MeasureSpec.EXACTLY
-                    )
+                        MeasureSpec.makeMeasureSpec(
+                                (int) Math.max(fullWidth * 0.8f, Math.min(dp(480), fullWidth)),
+                                MeasureSpec.getMode(widthMeasureSpec)
+                        ),
+                        MeasureSpec.makeMeasureSpec(
+                                height,
+                                MeasureSpec.EXACTLY
+                        )
                 );
             }
 
@@ -359,10 +356,10 @@ public class TranslateAlert extends Dialog {
         titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_PX, dp(19));
         header.addView(titleView, titleLayout = LayoutHelper.createFrame(
-            LayoutHelper.MATCH_PARENT,
-            LayoutHelper.WRAP_CONTENT,
-            Gravity.FILL_HORIZONTAL | Gravity.TOP,
-            22, 22,22, 0
+                LayoutHelper.MATCH_PARENT,
+                LayoutHelper.WRAP_CONTENT,
+                Gravity.FILL_HORIZONTAL | Gravity.TOP,
+                22, 22,22, 0
         ));
         titleView.post(() -> {
             titleView.setPivotX(LocaleController.isRTL ? titleView.getWidth() : 0);
@@ -380,8 +377,7 @@ public class TranslateAlert extends Dialog {
         textPadHorz = dp(6);
         textPadVert = dp(1.5f);
 
-        String fromLanguageName = languageName(fromLanguage);
-        subtitleFromView = new LoadingTextView(context, dp(6), dp(1.5f), fromLanguageName == null ? languageName(toLanguage) : fromLanguageName, false, true) {
+        subtitleFromView = new LoadingTextView(context, dp(6), dp(1.5f), null, false, true) {
             @Override
             protected void onLoadAnimation(float t) {
                 MarginLayoutParams lp = (MarginLayoutParams) subtitleFromView.getLayoutParams();
@@ -397,8 +393,6 @@ public class TranslateAlert extends Dialog {
         subtitleFromView.setLines(1);
         subtitleFromView.setTextColor(Theme.getColor(Theme.key_player_actionBarSubtitle));
         subtitleFromView.setTextSize(dp(14));
-        if (fromLanguageName != null)
-            subtitleFromView.setText(fromLanguageName);
 
         subtitleArrowView = new ImageView(context);
         subtitleArrowView.setImageResource(R.drawable.search_arrow);
@@ -410,7 +404,6 @@ public class TranslateAlert extends Dialog {
         subtitleToView.setLines(1);
         subtitleToView.setTextColor(Theme.getColor(Theme.key_player_actionBarSubtitle));
         subtitleToView.setTextSize(TypedValue.COMPLEX_UNIT_PX, dp(14));
-        subtitleToView.setText(languageName(toLanguage));
 
         if (LocaleController.isRTL) {
             subtitleView.setPadding(subtitleFromView.padHorz, 0, textPadHorz - subtitleFromView.padHorz, 0);
@@ -426,13 +419,13 @@ public class TranslateAlert extends Dialog {
         subtitleFromView.updateHeight();
 
         header.addView(subtitleView, subtitleLayout = LayoutHelper.createFrame(
-            LayoutHelper.MATCH_PARENT,
-            LayoutHelper.WRAP_CONTENT,
-            Gravity.TOP | (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT),
-            22 - textPadHorz / AndroidUtilities.density,
-            47 - textPadVert / AndroidUtilities.density,
-            22 - textPadHorz / AndroidUtilities.density,
-            0
+                LayoutHelper.MATCH_PARENT,
+                LayoutHelper.WRAP_CONTENT,
+                Gravity.TOP | (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT),
+                22 - textPadHorz / AndroidUtilities.density,
+                47 - textPadVert / AndroidUtilities.density,
+                22 - textPadHorz / AndroidUtilities.density,
+                0
         ));
 
         backButton = new ImageView(context);
@@ -580,11 +573,11 @@ public class TranslateAlert extends Dialog {
                 if (id == android.R.id.copy && isFocused()) {
                     android.content.ClipboardManager clipboard = (android.content.ClipboardManager) ApplicationLoader.applicationContext.getSystemService(Context.CLIPBOARD_SERVICE);
                     android.content.ClipData clip = android.content.ClipData.newPlainText(
-                    "label",
-                        getText().subSequence(
-                            Math.max(0, Math.min(getSelectionStart(), getSelectionEnd())),
-                            Math.max(0, Math.max(getSelectionStart(), getSelectionEnd()))
-                        )
+                            "label",
+                            getText().subSequence(
+                                    Math.max(0, Math.min(getSelectionStart(), getSelectionEnd())),
+                                    Math.max(0, Math.max(getSelectionStart(), getSelectionEnd()))
+                            )
                     );
                     clipboard.setPrimaryClip(clip);
                     BulletinFactory.of(bulletinContainer, null).createCopyBulletin(LocaleController.getString("TextCopied", R.string.TextCopied)).show();
@@ -725,7 +718,7 @@ public class TranslateAlert extends Dialog {
                 if (textRect.contains((int) x, (int) y) && !scrolling) {
                     Layout allTextsLayout = allTextsView.getLayout();
                     int tx = (int) (x - allTextsView.getLeft() - container.getLeft()),
-                        ty = (int) (y - allTextsView.getTop() - container.getTop() - scrollView.getTop() + scrollView.getScrollY());
+                            ty = (int) (y - allTextsView.getTop() - container.getTop() - scrollView.getTop() + scrollView.getScrollY());
                     final int line = allTextsLayout.getLineForVertical(ty);
                     final int off = allTextsLayout.getOffsetForHorizontal(line, tx);
 
@@ -766,9 +759,9 @@ public class TranslateAlert extends Dialog {
             fromTranslateMoreView = false; // translateMoreRect.contains((int) x, (int) y);
             if (pressedLink == null && /*!(scrollRect.contains((int) x, (int) y) && !canExpand() && containerOpenAnimationT < .5f && !scrolling) &&*/ !fromTranslateMoreView && !hasSelection()) {
                 if (
-                    !backRect.contains((int) x, (int) y) &&
-                    !buttonRect.contains((int) x, (int) y) &&
-                    event.getAction() == MotionEvent.ACTION_DOWN
+                        !backRect.contains((int) x, (int) y) &&
+                                !buttonRect.contains((int) x, (int) y) &&
+                                event.getAction() == MotionEvent.ACTION_DOWN
                 ) {
                     fromScrollRect = scrollRect.contains((int) x, (int) y) && (containerOpenAnimationT > 0 || !canExpand());
                     maybeScrolling = true;
@@ -808,9 +801,9 @@ public class TranslateAlert extends Dialog {
                             maybeScrolling = false;
                             allowScroll = true;
                             scrollYTo(
-                                Math.abs(dy) > dp(16) ?
-                                    /*fromScrollRect && Math.ceil(fromScrollY) >= 1f ? -1f :*/ Math.round(fromScrollY) + (scrollY > fromScrollY ? 1f : -1f) * (float) Math.ceil(Math.abs(fromScrollY - scrollY)) :
-                                    Math.round(fromScrollY)
+                                    Math.abs(dy) > dp(16) ?
+                                            /*fromScrollRect && Math.ceil(fromScrollY) >= 1f ? -1f :*/ Math.round(fromScrollY) + (scrollY > fromScrollY ? 1f : -1f) * (float) Math.ceil(Math.abs(fromScrollY - scrollY)) :
+                                            Math.round(fromScrollY)
                             );
                         }
                         //                    if (fromScrollRect)
@@ -850,10 +843,10 @@ public class TranslateAlert extends Dialog {
                     allTextsView.setText(allTexts);
                     allTextsView.measure(MeasureSpec.makeMeasureSpec(allTextsContainer.getWidth() - allTextsContainer.getPaddingLeft() - allTextsContainer.getPaddingRight(), MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(textsView.getHeight(), MeasureSpec.AT_MOST));
                     allTextsView.layout(
-                        allTextsContainer.getLeft() + allTextsContainer.getPaddingLeft(),
-                        allTextsContainer.getTop() + allTextsContainer.getPaddingTop(),
-                        allTextsContainer.getLeft() + allTextsContainer.getPaddingLeft() + allTextsView.getMeasuredWidth(),
-                        allTextsContainer.getTop() + allTextsContainer.getPaddingTop() + allTextsView.getMeasuredHeight()
+                            allTextsContainer.getLeft() + allTextsContainer.getPaddingLeft(),
+                            allTextsContainer.getTop() + allTextsContainer.getPaddingTop(),
+                            allTextsContainer.getLeft() + allTextsContainer.getPaddingLeft() + allTextsView.getMeasuredWidth(),
+                            allTextsContainer.getTop() + allTextsContainer.getPaddingTop() + allTextsView.getMeasuredHeight()
                     );
 //                    if (hadSelection)
 //                        Selection.setSelection(allTexts, selStart, selEnd);
@@ -928,8 +921,8 @@ public class TranslateAlert extends Dialog {
         params.flags |= WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
         if (Build.VERSION.SDK_INT >= 21) {
             params.flags |= WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
-                WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR |
-                WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS;
+                    WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR |
+                    WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS;
         }
         params.flags |= WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
         params.height = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -956,7 +949,7 @@ public class TranslateAlert extends Dialog {
         openAnimation(0);
         openTo(1, true, true);
     }
-    
+
     private boolean dismissed = false;
     @Override
     public void dismiss() {
@@ -1048,16 +1041,6 @@ public class TranslateAlert extends Dialog {
         return null;
     }
 
-    public void updateSourceLanguage() {
-        if (languageName(fromLanguage) != null) {
-            subtitleView.setAlpha(1);
-            if (!subtitleFromView.loaded)
-                subtitleFromView.setText(languageName(fromLanguage));
-        } else if (loaded) {
-            subtitleView.animate().alpha(0).setDuration(150).start();
-        }
-    }
-
     private ArrayList<CharSequence> cutInBlocks(CharSequence full, int maxBlockSize) {
         ArrayList<CharSequence> blocks = new ArrayList<>();
         if (full == null)
@@ -1109,127 +1092,17 @@ public class TranslateAlert extends Dialog {
         lastLoadingBlock = lastLoadingBlock == null ? addBlock(blockText, blockIndex != 0) : lastLoadingBlock;
         lastLoadingBlock.loading = true;
 
-        fetchTranslation(
-            blockText,
-            (String translatedText, String sourceLanguage) -> {
-                loaded = true;
-                Spannable spannable = new SpannableStringBuilder(translatedText);
-                try {
-                    MessageObject.addUrlsByPattern(false, spannable, false, 0, 0, true);
-                    URLSpan[] urlSpans = spannable.getSpans(0, spannable.length(), URLSpan.class);
-                    for (int i = 0; i < urlSpans.length; ++i) {
-                        URLSpan urlSpan = urlSpans[i];
-                        int start = spannable.getSpanStart(urlSpan),
-                            end = spannable.getSpanEnd(urlSpan);
-                        if (start == -1 || end == -1)
-                            continue;
-                        spannable.removeSpan(urlSpan);
-                        spannable.setSpan(
-                            new ClickableSpan() {
-                                @Override
-                                public void onClick(@NonNull View view) {
-                                    if (onLinkPress != null) {
-                                        onLinkPress.run(urlSpan);
-                                        fastHide = true;
-                                        dismiss();
-                                    } else
-                                        AlertsCreator.showOpenUrlAlert(fragment, urlSpan.getURL(), false, false);
-                                }
 
-                                @Override
-                                public void updateDrawState(@NonNull TextPaint ds) {
-                                    int alpha = Math.min(ds.getAlpha(), ds.getColor() >> 24 & 0xff);
-                                    if (!(urlSpan instanceof URLSpanNoUnderline))
-                                        ds.setUnderlineText(true);
-                                    ds.setColor(Theme.getColor(Theme.key_dialogTextLink));
-                                    ds.setAlpha(alpha);
-                                }
-                            },
-                            start, end,
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                        );
-                    }
-
-                    AndroidUtilities.addLinks(spannable, Linkify.WEB_URLS);
-                    urlSpans = spannable.getSpans(0, spannable.length(), URLSpan.class);
-                    for (int i = 0; i < urlSpans.length; ++i) {
-                        URLSpan urlSpan = urlSpans[i];
-                        int start = spannable.getSpanStart(urlSpan),
-                                end = spannable.getSpanEnd(urlSpan);
-                        if (start == -1 || end == -1)
-                            continue;
-                        spannable.removeSpan(urlSpan);
-                        spannable.setSpan(
-                            new ClickableSpan() {
-                                @Override
-                                public void onClick(@NonNull View view) {
-                                    AlertsCreator.showOpenUrlAlert(fragment, urlSpan.getURL(), false, false);
-                                }
-
-                                @Override
-                                public void updateDrawState(@NonNull TextPaint ds) {
-                                    int alpha = Math.min(ds.getAlpha(), ds.getColor() >> 24 & 0xff);
-                                    if (!(urlSpan instanceof URLSpanNoUnderline))
-                                        ds.setUnderlineText(true);
-                                    ds.setColor(Theme.getColor(Theme.key_dialogTextLink));
-                                    ds.setAlpha(alpha);
-                                }
-                            },
-                            start, end,
-                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                        );
-                    }
-
-                    spannable = (Spannable) Emoji.replaceEmoji(spannable, allTextsView.getPaint().getFontMetricsInt(), dp(14), false);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-//                boolean hadSelection = hasSelection();
-//                int selectionStart = Selection.getSelectionStart(allTexts),
-//                    selectionEnd   = Selection.getSelectionEnd(allTexts);
-                allTexts = new SpannableStringBuilder(allTextsView.getText()).append(blockIndex == 0 ? "" : "\n").append(spannable);
-//                if (hadSelection)
-//                    Selection.setSelection(allTexts, selectionStart, selectionEnd);
-
-                if (lastLoadingBlock != null) {
-                    lastLoadingBlock.setText(spannable);
-                    lastLoadingBlock = null;
-                }
-
-
-                fromLanguage = sourceLanguage;
-                updateSourceLanguage();
-
-                blockIndex++;
-                showTranslateMoreView(blockIndex < textBlocks.size());
-                loading = false;
-
-                if (blockIndex < textBlocks.size()) {
-                    CharSequence nextTextBlock = textBlocks.get(blockIndex);
-                    lastLoadingBlock = addBlock(nextTextBlock, true);
-                    lastLoadingBlock.loading = false;
-                }
-            },
-            (boolean rateLimit) -> {
-                if (rateLimit)
-                    Toast.makeText(getContext(), LocaleController.getString("TranslationFailedAlert1", R.string.TranslationFailedAlert1), Toast.LENGTH_SHORT).show();
-                else
-                    Toast.makeText(getContext(), LocaleController.getString("TranslationFailedAlert2", R.string.TranslationFailedAlert2), Toast.LENGTH_SHORT).show();
-                if (blockIndex == 0)
-                    dismiss();
-            }
-        );
         return true;
     }
 
     private String[] userAgents = new String[] {
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36", // 13.5%
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36", // 6.6%
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0", // 6.4%
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0", // 6.2%
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36", // 5.2%
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36" // 4.8%
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36", // 13.5%
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36", // 6.6%
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0", // 6.4%
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0", // 6.2%
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36", // 5.2%
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36" // 4.8%
     };
     public interface OnTranslationSuccess {
         public void run(String translated, String sourceLanguage);
@@ -1237,89 +1110,9 @@ public class TranslateAlert extends Dialog {
     public interface OnTranslationFail {
         public void run(boolean rateLimit);
     }
-    private long minFetchingDuration = 1000;
-    private void fetchTranslation(CharSequence text, OnTranslationSuccess onSuccess, OnTranslationFail onFail) {
-        new Thread() {
-            @Override
-            public void run() {
-                String uri = "";
-                HttpURLConnection connection = null;
-                long start = SystemClock.elapsedRealtime();
-                try {
-                    uri = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=";
-                    uri += Uri.encode(fromLanguage);
-                    uri += "&tl=";
-                    uri += Uri.encode(toLanguage);
-                    uri += "&dt=t&ie=UTF-8&oe=UTF-8&otf=1&ssel=0&tsel=0&kc=7&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&q=";
-                    uri += Uri.encode(text.toString());
-                    connection = (HttpURLConnection) new URI(uri).toURL().openConnection();
-                    connection.setRequestMethod("GET");
-                    connection.setRequestProperty("User-Agent", userAgents[(int) Math.round(Math.random() * (userAgents.length - 1))]);
-                    connection.setRequestProperty("Content-Type", "application/json");
 
-                    StringBuilder textBuilder = new StringBuilder();
-                    try (Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), Charset.forName("UTF-8")))) {
-                        int c = 0;
-                        while ((c = reader.read()) != -1) {
-                            textBuilder.append((char) c);
-                        }
-                    }
-                    String jsonString = textBuilder.toString();
-
-                    JSONTokener tokener = new JSONTokener(jsonString);
-                    JSONArray array = new JSONArray(tokener);
-                    JSONArray array1 = array.getJSONArray(0);
-                    String sourceLanguage = null;
-                    try {
-                        sourceLanguage = array.getString(2);
-                    } catch (Exception e2) {}
-                    if (sourceLanguage != null && sourceLanguage.contains("-")) {
-                        sourceLanguage = sourceLanguage.substring(0, sourceLanguage.indexOf("-"));
-                    }
-                    String result = "";
-                    for (int i = 0; i < array1.length(); ++i) {
-                        String blockText = array1.getJSONArray(i).getString(0);
-                        if (blockText != null && !blockText.equals("null"))
-                            result += /*(i > 0 ? "\n" : "") +*/ blockText;
-                    }
-                    if (text.length() > 0 && text.charAt(0) == '\n')
-                        result = "\n" + result;
-                    final String finalResult = result;
-                    final String finalSourceLanguage = sourceLanguage;
-                    long elapsed = SystemClock.elapsedRealtime() - start;
-                    if (elapsed < minFetchingDuration)
-                        sleep(minFetchingDuration - elapsed);
-                    AndroidUtilities.runOnUIThread(() -> {
-                        if (onSuccess != null)
-                            onSuccess.run(finalResult, finalSourceLanguage);
-                    });
-                } catch (Exception e) {
-                    try {
-                        Log.e("translate", "failed to translate a text " + (connection != null ? connection.getResponseCode() : null) + " " + (connection != null ? connection.getResponseMessage() : null));
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                    }
-                    e.printStackTrace();
-
-                    if (onFail != null && !dismissed) {
-                        try {
-                            final boolean rateLimit = connection != null && connection.getResponseCode() == 429;
-                            AndroidUtilities.runOnUIThread(() -> {
-                                onFail.run(rateLimit);
-                            });
-                        } catch (Exception e2) {
-                            AndroidUtilities.runOnUIThread(() -> {
-                                onFail.run(false);
-                            });
-                        }
-                    }
-                }
-            }
-        }.start();
-    }
-
-    public static void showAlert(Context context, BaseFragment fragment, String fromLanguage, String toLanguage, CharSequence text, boolean noforwards, OnLinkPress onLinkPress) {
-        TranslateAlert alert = new TranslateAlert(fragment, context, fromLanguage, toLanguage, text, noforwards, onLinkPress);
+    public static void showAlert(Context context, BaseFragment fragment, CharSequence text, boolean noforwards, OnLinkPress onLinkPress) {
+        TranscribeAlert alert = new TranscribeAlert(fragment, context, text, noforwards, onLinkPress);
         if (fragment != null) {
             if (fragment.getParentActivity() != null) {
                 fragment.showDialog(alert);
@@ -1334,7 +1127,7 @@ public class TranslateAlert extends Dialog {
         public TextView textView = null;
 
         private CharSequence loadingString;
-//        private StaticLayout loadingLayout;
+        //        private StaticLayout loadingLayout;
 //        private StaticLayout textLayout;
         private Paint loadingPaint = new Paint();
         private Paint loadingIdlePaint = new Paint();
@@ -1354,10 +1147,10 @@ public class TranslateAlert extends Dialog {
             public void addRect(float left, float top, float right, float bottom, @NonNull Direction dir) {
                 if (!got) {
                     fetchedPathRect.set(
-                        left - padHorz,
-                        top - padVert,
-                        right + padHorz,
-                        bottom + padVert
+                            left - padHorz,
+                            top - padVert,
+                            right + padHorz,
+                            bottom + padVert
                     );
                     got = true;
                 }
@@ -1401,15 +1194,15 @@ public class TranslateAlert extends Dialog {
                 @Override
                 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                     super.onMeasure(
-                        animateWidth ?
+                            animateWidth ?
+                                    MeasureSpec.makeMeasureSpec(
+                                            999999,
+                                            MeasureSpec.AT_MOST
+                                    ) : widthMeasureSpec,
                             MeasureSpec.makeMeasureSpec(
-                                999999,
-                                MeasureSpec.AT_MOST
-                            ) : widthMeasureSpec,
-                        MeasureSpec.makeMeasureSpec(
-                            MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST ? 999999 : MeasureSpec.getSize(heightMeasureSpec),
-                            MeasureSpec.getMode(heightMeasureSpec)
-                        )
+                                    MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST ? 999999 : MeasureSpec.getSize(heightMeasureSpec),
+                                    MeasureSpec.getMode(heightMeasureSpec)
+                            )
                     );
                 }
             };
@@ -1422,15 +1215,15 @@ public class TranslateAlert extends Dialog {
                 @Override
                 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                     super.onMeasure(
-                        animateWidth ?
+                            animateWidth ?
+                                    MeasureSpec.makeMeasureSpec(
+                                            999999,
+                                            MeasureSpec.AT_MOST
+                                    ) : widthMeasureSpec,
                             MeasureSpec.makeMeasureSpec(
-                                999999,
-                                MeasureSpec.AT_MOST
-                            ) : widthMeasureSpec,
-                        MeasureSpec.makeMeasureSpec(
-                            MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST ? 999999 : MeasureSpec.getSize(heightMeasureSpec),
-                            MeasureSpec.getMode(heightMeasureSpec)
-                        )
+                                    MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST ? 999999 : MeasureSpec.getSize(heightMeasureSpec),
+                                    MeasureSpec.getMode(heightMeasureSpec)
+                            )
                     );
                 }
             };
@@ -1440,7 +1233,7 @@ public class TranslateAlert extends Dialog {
             addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
 
             int c1 = Theme.getColor(Theme.key_dialogBackground),
-                c2 = Theme.getColor(Theme.key_dialogBackgroundGray);
+                    c2 = Theme.getColor(Theme.key_dialogBackgroundGray);
             LinearGradient gradient = new LinearGradient(0, 0, gradientWidth, 0, new int[]{ c1, c2, c1 }, new float[] { 0, 0.67f, 1f }, Shader.TileMode.REPEAT);
             loadingPaint.setShader(gradient);
             loadingIdlePaint.setColor(c2);
@@ -1468,18 +1261,18 @@ public class TranslateAlert extends Dialog {
         private void updateHeight() {
 //            int loadingHeight = loadingLayout != null ? loadingLayout.getHeight() : loadingTextView.getMeasuredHeight();
             int loadingHeight = loadingTextView.getMeasuredHeight(),
-                textHeight = textView == null ? loadingHeight : textView.getMeasuredHeight();
+                    textHeight = textView == null ? loadingHeight : textView.getMeasuredHeight();
             float scaleFromZeroT = scaleFromZero ? Math.max(Math.min((float) (SystemClock.elapsedRealtime() - scaleFromZeroStart) / (float) scaleFromZeroDuration, 1f), 0f) : 1f;
             int height = (
-                (int) (
-                    (
-                        padVert * 2 +
-                        loadingHeight + (
-                            textHeight -
-                            loadingHeight
-                        ) * loadingT
-                    ) * scaleFromZeroT
-                )
+                    (int) (
+                            (
+                                    padVert * 2 +
+                                            loadingHeight + (
+                                            textHeight -
+                                                    loadingHeight
+                                    ) * loadingT
+                            ) * scaleFromZeroT
+                    )
             );
             ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) getLayoutParams();
             boolean newHeight = false;
@@ -1489,7 +1282,7 @@ public class TranslateAlert extends Dialog {
             } else
                 newHeight = params.height != height;
 //            if (height > 0 || scaleFromZero)
-                params.height = height;
+            params.height = height;
 
             if (animateWidth) {
                 int loadingWidth = loadingTextView.getMeasuredWidth() + padHorz * 2;
@@ -1500,7 +1293,7 @@ public class TranslateAlert extends Dialog {
             this.setLayoutParams(params);
         }
 
-//        private TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        //        private TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
 //        private TextPaint loadingTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         private float gradientWidth = dp(350f);
         private void updateLoadingLayout() {
@@ -1621,7 +1414,7 @@ public class TranslateAlert extends Dialog {
         private float sz(int unit, float size) {
             Context c = getContext();
             return TypedValue.applyDimension(
-                unit, size, (c == null ? Resources.getSystem() : c.getResources()).getDisplayMetrics()
+                    unit, size, (c == null ? Resources.getSystem() : c.getResources()).getDisplayMetrics()
             );
         }
         private int textSize;
@@ -1693,12 +1486,12 @@ public class TranslateAlert extends Dialog {
             float w = getWidth(), h = getHeight();
 
             float cx = LocaleController.isRTL ? Math.max(w / 2f, w - 8f) : Math.min(w / 2f, 8f),
-                  cy = Math.min(h / 2f, 8f),
-                  R = (float) Math.sqrt(Math.max(
-                    Math.max(cx*cx + cy*cy, (w-cx)*(w-cx) + cy*cy),
-                    Math.max(cx*cx + (h-cy)*(h-cy), (w-cx)*(w-cx) + (h-cy)*(h-cy))
-                  )),
-                  r = loadingT * R;
+                    cy = Math.min(h / 2f, 8f),
+                    R = (float) Math.sqrt(Math.max(
+                            Math.max(cx*cx + cy*cy, (w-cx)*(w-cx) + cy*cy),
+                            Math.max(cx*cx + (h-cy)*(h-cy), (w-cx)*(w-cx) + (h-cy)*(h-cy))
+                    )),
+                    r = loadingT * R;
             inPath.reset();
             inPath.addCircle(cx, cy, r, Path.Direction.CW);
 
