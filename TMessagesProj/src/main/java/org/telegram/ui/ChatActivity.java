@@ -20559,7 +20559,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
             }
             items.add(LocaleController.getString("Call", R.string.Call));
-            options.add(99);
+            options.add(30);
             icons.add(R.drawable.msg_delete);
 
             if (options.isEmpty()) {
@@ -21041,13 +21041,13 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         });
                     }
                 }
-                if (option == 99) {
+                if (option == 30) {
                     // "Transcribe" button
                     final CharSequence finalMessageText = messageText;
                     TranscribeAlert.OnLinkPress onLinkPress = (link) -> {
                         didPressMessageUrl(link, false, selectedObject, v instanceof ChatMessageCell ? (ChatMessageCell) v : null);
                     };
-                    cell.setVisibility(View.GONE);
+                    //cell.setVisibility(View.GONE);
                     cell.setOnClickListener(e -> {
                         if (selectedObject == null || i >= options.size() || getParentActivity() == null) {
                             return;
@@ -21061,6 +21061,73 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             scrimPopupWindow.dismiss();
                         }
                     });
+                    /*String toLang = LocaleController.getInstance().getCurrentLocale().getLanguage();
+                    final CharSequence finalMessageText = messageText;
+                    TranslateAlert.OnLinkPress onLinkPress = (link) -> {
+                        didPressMessageUrl(link, false, selectedObject, v instanceof ChatMessageCell ? (ChatMessageCell) v : null);
+                    };
+                    if (LanguageDetector.hasSupport()) {
+                        final String[] fromLang = { null };
+                        cell.setVisibility(View.GONE);
+                        waitForLangDetection.set(true);
+                        LanguageDetector.detectLanguage(
+                                finalMessageText.toString(),
+                                (String lang) -> {
+                                    fromLang[0] = lang;
+                                    if (fromLang[0] != null && (!fromLang[0].equals(toLang) || fromLang[0].equals("und")) &&
+                                            !RestrictedLanguagesSelectActivity.getRestrictedLanguages().contains(fromLang[0])) {
+                                        cell.setVisibility(View.VISIBLE);
+                                    }
+                                    waitForLangDetection.set(false);
+                                    if (onLangDetectionDone.get() != null) {
+                                        onLangDetectionDone.get().run();
+                                        onLangDetectionDone.set(null);
+                                    }
+                                },
+                                (Exception e) -> {
+                                    Log.e("mlkit", "failed to detect language in message");
+                                    e.printStackTrace();
+                                    waitForLangDetection.set(false);
+                                    if (onLangDetectionDone.get() != null) {
+                                        onLangDetectionDone.get().run();
+                                        onLangDetectionDone.set(null);
+                                    }
+                                }
+                        );
+                        cell.setOnClickListener(e -> {
+                            if (selectedObject == null || i >= options.size() || getParentActivity() == null) {
+                                return;
+                            }
+                            TranslateAlert.showAlert(getParentActivity(), this, fromLang[0], toLang, finalMessageText, currentChat != null && currentChat.noforwards, onLinkPress);
+                            scrimView = null;
+                            scrimViewReaction = null;
+                            contentView.invalidate();
+                            chatListView.invalidate();
+                            if (scrimPopupWindow != null) {
+                                scrimPopupWindow.dismiss();
+                            }
+                        });
+                        cell.postDelayed(() -> {
+                            if (onLangDetectionDone.get() != null) {
+                                onLangDetectionDone.get().run();
+                                onLangDetectionDone.set(null);
+                            }
+                        }, 250);
+                    } else {
+                        cell.setOnClickListener(e -> {
+                            if (selectedObject == null || i >= options.size() || getParentActivity() == null) {
+                                return;
+                            }
+                            TranslateAlert.showAlert(getParentActivity(), this, "und", toLang, finalMessageText, currentChat != null && currentChat.noforwards, onLinkPress);
+                            scrimView = null;
+                            scrimViewReaction = null;
+                            contentView.invalidate();
+                            chatListView.invalidate();
+                            if (scrimPopupWindow != null) {
+                                scrimPopupWindow.dismiss();
+                            }
+                        });
+                    }*/
                 }
             }
 
