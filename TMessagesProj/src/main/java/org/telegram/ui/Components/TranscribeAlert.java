@@ -79,10 +79,6 @@ public class TranscribeAlert extends Dialog {
     private FrameLayout contentView;
     private FrameLayout container;
     private TextView titleView;
-    private LinearLayout subtitleView;
-    private LoadingTextView subtitleFromView;
-    private ImageView subtitleArrowView;
-    private TextView subtitleToView;
     private ImageView backButton;
     private FrameLayout header;
     private FrameLayout headerShadowView;
@@ -98,7 +94,6 @@ public class TranscribeAlert extends Dialog {
     private FrameLayout allTextsContainer;
 
     private FrameLayout.LayoutParams titleLayout;
-    private FrameLayout.LayoutParams subtitleLayout;
     private FrameLayout.LayoutParams backLayout;
     private FrameLayout.LayoutParams headerLayout;
     private FrameLayout.LayoutParams scrollViewLayout;
@@ -129,15 +124,6 @@ public class TranscribeAlert extends Dialog {
 //        statusBar.setAlpha(Math.max(0, (t - .8f) / .2f));
 //        statusBar.setTranslationY(Math.max(0, (1f - (t - .9f) / .1f) * dp(48)));
 //        statusBar.setScaleY(Math.max(0, (t - .8f) / .2f));
-
-        subtitleLayout.setMargins(
-                dp(lerp(22, 72, t)) - subtitleFromView.padHorz,
-                dp(lerp(47, 30, t)) - subtitleFromView.padVert,
-                subtitleLayout.rightMargin,
-                subtitleLayout.bottomMargin
-        );
-        subtitleView.setLayoutParams(subtitleLayout);
-//        subtitleView.forceLayout();
 
         backButton.setAlpha(t);
         backButton.setScaleX(.75f + .25f * t);
@@ -350,7 +336,7 @@ public class TranscribeAlert extends Dialog {
         titleView.setPivotX(LocaleController.isRTL ? titleView.getWidth() : 0);
         titleView.setPivotY(0);
         titleView.setLines(1);
-        titleView.setText(LocaleController.getString("AutomaticTranslation", R.string.AutomaticTranslation));
+        titleView.setText(LocaleController.getString("ClearRecentEmoji", R.string.ClearRecentEmoji));
         titleView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         titleView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
         titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
@@ -365,68 +351,8 @@ public class TranscribeAlert extends Dialog {
             titleView.setPivotX(LocaleController.isRTL ? titleView.getWidth() : 0);
         });
 
-//        String from = languageName(fromLanguage);
-//        String to = languageName(toLanguage);
-//        String subtitleText = LocaleController.formatString("FromLanguageToLanguage", R.string.FromLanguageToLanguage, (from != null ? from : ""), (to != null ? to : ""));
-        subtitleView = new LinearLayout(context);
-        subtitleView.setOrientation(LinearLayout.HORIZONTAL);
-        if (Build.VERSION.SDK_INT >= 17)
-            subtitleView.setLayoutDirection(LocaleController.isRTL ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
-        subtitleView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
-
         textPadHorz = dp(6);
         textPadVert = dp(1.5f);
-
-        subtitleFromView = new LoadingTextView(context, dp(6), dp(1.5f), null, false, true) {
-            @Override
-            protected void onLoadAnimation(float t) {
-                MarginLayoutParams lp = (MarginLayoutParams) subtitleFromView.getLayoutParams();
-                if (LocaleController.isRTL) {
-                    lp.leftMargin = dp(2f - t * 6f);
-                } else {
-                    lp.rightMargin = dp(2f - t * 6f);
-                }
-                subtitleFromView.setLayoutParams(lp);
-            }
-        };
-        subtitleFromView.showLoadingText(false);
-        subtitleFromView.setLines(1);
-        subtitleFromView.setTextColor(Theme.getColor(Theme.key_player_actionBarSubtitle));
-        subtitleFromView.setTextSize(dp(14));
-
-        subtitleArrowView = new ImageView(context);
-        subtitleArrowView.setImageResource(R.drawable.search_arrow);
-        subtitleArrowView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_player_actionBarSubtitle), PorterDuff.Mode.MULTIPLY));
-        if (LocaleController.isRTL)
-            subtitleArrowView.setScaleX(-1f);
-
-        subtitleToView = new TextView(context);
-        subtitleToView.setLines(1);
-        subtitleToView.setTextColor(Theme.getColor(Theme.key_player_actionBarSubtitle));
-        subtitleToView.setTextSize(TypedValue.COMPLEX_UNIT_PX, dp(14));
-
-        if (LocaleController.isRTL) {
-            subtitleView.setPadding(subtitleFromView.padHorz, 0, textPadHorz - subtitleFromView.padHorz, 0);
-            subtitleView.addView(subtitleToView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
-            subtitleView.addView(subtitleArrowView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 3, 1, 0, 0));
-            subtitleView.addView(subtitleFromView, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 2, 0, 0, 0));
-        } else {
-            subtitleView.setPadding(textPadHorz - subtitleFromView.padHorz, 0, subtitleFromView.padHorz, 0);
-            subtitleView.addView(subtitleFromView, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 0, 0, 2, 0));
-            subtitleView.addView(subtitleArrowView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 0, 1, 3, 0));
-            subtitleView.addView(subtitleToView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
-        }
-        subtitleFromView.updateHeight();
-
-        header.addView(subtitleView, subtitleLayout = LayoutHelper.createFrame(
-                LayoutHelper.MATCH_PARENT,
-                LayoutHelper.WRAP_CONTENT,
-                Gravity.TOP | (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT),
-                22 - textPadHorz / AndroidUtilities.density,
-                47 - textPadVert / AndroidUtilities.density,
-                22 - textPadHorz / AndroidUtilities.density,
-                0
-        ));
 
         backButton = new ImageView(context);
         backButton.setImageResource(R.drawable.ic_ab_back);
@@ -1092,6 +1018,20 @@ public class TranscribeAlert extends Dialog {
         lastLoadingBlock = lastLoadingBlock == null ? addBlock(blockText, blockIndex != 0) : lastLoadingBlock;
         lastLoadingBlock.loading = true;
 
+        loaded = true;
+        Spannable spannable = new SpannableStringBuilder(blockText.toString());
+        allTexts = new SpannableStringBuilder(allTextsView.getText()).append(blockIndex == 0 ? "" : "\n").append(spannable);
+        if (lastLoadingBlock != null) {
+            lastLoadingBlock.setText(spannable);
+            lastLoadingBlock = null;
+        }
+        blockIndex++;
+        loading = false;
+        if (blockIndex < textBlocks.size()) {
+            CharSequence nextTextBlock = textBlocks.get(blockIndex);
+            lastLoadingBlock = addBlock(nextTextBlock, true);
+            lastLoadingBlock.loading = false;
+        }
 
         return true;
     }
