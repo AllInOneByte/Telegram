@@ -1025,6 +1025,13 @@
     <string name="CloseTranslation">Close Translation</string>
     <string name="TranslationFailedAlert1">Translation failed. Try again later.</string>
     <string name="TranslationFailedAlert2">Translation failed.</string>
+    <string name="TranscriptionFailedAlert1">Transcription failed. Try again later.</string>
+    <string name="TranscriptionFailedAlert2">Transcription failed.</string>
+    <string name="LoadingTranscription">Loading transcription...</string>
+    <string name="VoiceMsgTooLong">Voice message too long (maximum 60 seconds)</string>
+    <string name="AutomaticTranscription">Automatic Transcription</string>
+    <string name="CloseTranscription">Close Transcription</string>
+    <string name="TranscribeMessage">Transcribe</string>
     <string name="DeleteAllFrom">Delete all from %1$s</string>
     <string name="ClearRecentEmoji">Clear recent emoji?</string>
     <string name="Emoji1">Smileys and people</string>

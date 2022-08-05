@@ -20289,6 +20289,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                                     items.add(LocaleController.getString("SaveToDownloads", R.string.SaveToDownloads));
                                     options.add(10);
                                     icons.add(R.drawable.msg_download);
+                                } else if (selectedObject.isVoice() && !getMessagesController().isChatNoForwards(currentChat)) {
+                                    items.add(LocaleController.getString("TranscribeMessage", R.string.TranscribeMessage));
+                                    options.add(30);
+                                    icons.add(R.drawable.msg_text_regular);
                                 }
                             }
                         } else if (type == 3 && !getMessagesController().isChatNoForwards(currentChat)) {
@@ -20558,9 +20562,6 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 }
             }
-            items.add(LocaleController.getString("Call", R.string.Call));
-            options.add(30);
-            icons.add(R.drawable.msg_delete);
 
             if (options.isEmpty()) {
                 return;
@@ -21043,7 +21044,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 }
                 if (option == 30) {
                     // "Transcribe" button
-                    final CharSequence finalMessageText = messageText;
+                    File document = FileLoader.getPathToAttach(selectedObject.getDocument());
                     TranscribeAlert.OnLinkPress onLinkPress = (link) -> {
                         didPressMessageUrl(link, false, selectedObject, v instanceof ChatMessageCell ? (ChatMessageCell) v : null);
                     };
@@ -21051,7 +21052,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         if (selectedObject == null || i >= options.size() || getParentActivity() == null) {
                             return;
                         }
-                        TranscribeAlert.showAlert(getParentActivity(), this, finalMessageText, currentChat != null && currentChat.noforwards, onLinkPress);
+                        TranscribeAlert.showAlert(getParentActivity(), this, document, selectedObject.getDuration(), currentChat != null && currentChat.noforwards, onLinkPress);
                         scrimView = null;
                         scrimViewReaction = null;
                         contentView.invalidate();

@@ -4,5 +4,5 @@ build/
 obj/
 *.iml
 local.properties
-api_key.json
 .cxx/
+*gcloud_speech_to_text_credential.json

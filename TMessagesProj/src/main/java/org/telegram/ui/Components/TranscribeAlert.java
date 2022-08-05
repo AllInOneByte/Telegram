@@ -35,6 +35,7 @@ import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
+import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -52,7 +53,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.widget.NestedScrollView;
 
+import com.google.android.gms.auth.api.credentials.Credential;
+
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONStringer;
 import org.json.JSONTokener;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -65,13 +71,37 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Scanner;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class TranscribeAlert extends Dialog {
     private FrameLayout bulletinContainer;
@@ -85,7 +115,6 @@ public class TranscribeAlert extends Dialog {
     private boolean scrollViewScrollable = false;
     private NestedScrollView scrollView;
     private LinearLayout textsView;
-    //    private TextView translateMoreView;
     private TextView buttonTextView;
     private FrameLayout buttonView;
     private FrameLayout buttonShadowView;
@@ -97,9 +126,6 @@ public class TranscribeAlert extends Dialog {
     private FrameLayout.LayoutParams backLayout;
     private FrameLayout.LayoutParams headerLayout;
     private FrameLayout.LayoutParams scrollViewLayout;
-
-    private int blockIndex = 0;
-    private ArrayList<CharSequence> textBlocks;
 
     private float containerOpenAnimationT = 0f;
     private float openAnimationT = 0f;
@@ -183,7 +209,7 @@ public class TranscribeAlert extends Dialog {
         openAnimationToAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT);
         openAnimationToAnimator.setDuration(220);
         openAnimationToAnimator.start();
-        if (to >= .5 && blockIndex <= 1)
+        if (to >= .5)
             fetchNext();
     }
 
@@ -199,8 +225,7 @@ public class TranscribeAlert extends Dialog {
     }
     private boolean canExpand() {
         return (
-                textsView.getChildCount() < textBlocks.size() ||
-                        minHeight() >= (AndroidUtilities.displayMetrics.heightPixels * heightMaxPercent) //||
+                minHeight() >= (AndroidUtilities.displayMetrics.heightPixels * heightMaxPercent) //||
 //            (scrollView.canScrollVertically(1) || scrollView.canScrollVertically(-1))
         ) && textsView.getChildCount() > 0 && ((LoadingTextView) textsView.getChildAt(0)).loaded;
     }
@@ -221,18 +246,19 @@ public class TranscribeAlert extends Dialog {
     private int scrollShouldBe = -1;
     private boolean allowScroll = true;
     private ValueAnimator scrollerToBottom = null;
-    private CharSequence text;
+    private int duration;
+    private File file;
     private BaseFragment fragment;
     private boolean noforwards;
     private OnLinkPress onLinkPress = null;
-    public TranscribeAlert(BaseFragment fragment, Context context, CharSequence text, boolean noforwards, OnLinkPress onLinkPress) {
+    public TranscribeAlert(BaseFragment fragment, Context context, File file, int duration, boolean noforwards, OnLinkPress onLinkPress) {
         super(context, R.style.TransparentDialog);
 
         this.onLinkPress = onLinkPress;
         this.noforwards = noforwards;
         this.fragment = fragment;
-        this.text = text;
-        this.textBlocks = cutInBlocks(text, 1024);
+        this.duration = duration;
+        this.file = file;
 
         if (Build.VERSION.SDK_INT >= 30) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -336,7 +362,7 @@ public class TranscribeAlert extends Dialog {
         titleView.setPivotX(LocaleController.isRTL ? titleView.getWidth() : 0);
         titleView.setPivotY(0);
         titleView.setLines(1);
-        titleView.setText(LocaleController.getString("ClearRecentEmoji", R.string.ClearRecentEmoji));
+        titleView.setText(LocaleController.getString("AutomaticTranscription", R.string.AutomaticTranscription));
         titleView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         titleView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
         titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
@@ -556,7 +582,7 @@ public class TranscribeAlert extends Dialog {
         buttonTextView.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
         buttonTextView.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
         buttonTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        buttonTextView.setText(LocaleController.getString("CloseTranslation", R.string.CloseTranslation));
+        buttonTextView.setText(LocaleController.getString("CloseTranscription", R.string.CloseTranscription));
 
         buttonView = new FrameLayout(context);
         buttonView.setBackground(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(4), Theme.getColor(Theme.key_featuredStickers_addButton), Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
@@ -949,59 +975,6 @@ public class TranscribeAlert extends Dialog {
         }
     }
 
-    public String languageName(String locale) {
-        if (locale == null || locale.equals("und") || locale.equals("auto"))
-            return null;
-//        if (locale != null && !locale.equals("und") && !locale.equals("auto")) {
-//            String passportLang = LocaleController.getString("PassportLanguage_" + locale.toUpperCase());
-//            if (passportLang != null && passportLang.length() > 0)
-//                return passportLang;
-//        }
-        LocaleController.LocaleInfo localeInfo = LocaleController.getInstance().getBuiltinLanguageByPlural(locale);
-        boolean isCurrentLanguageEnglish = false;
-        try {
-            isCurrentLanguageEnglish = LocaleController.getInstance().getCurrentLocaleInfo().pluralLangCode.equals("en");
-        } catch (Exception e) {}
-        if (localeInfo != null && ((isCurrentLanguageEnglish && localeInfo.nameEnglish != null) || (!isCurrentLanguageEnglish && localeInfo.name != null)))
-            return isCurrentLanguageEnglish ? localeInfo.nameEnglish : localeInfo.name;
-        return null;
-    }
-
-    private ArrayList<CharSequence> cutInBlocks(CharSequence full, int maxBlockSize) {
-        ArrayList<CharSequence> blocks = new ArrayList<>();
-        if (full == null)
-            return blocks;
-        while (full.length() > maxBlockSize) {
-            String maxBlockStr = full.subSequence(0, maxBlockSize).toString();
-            int n = -1;
-            if (n == -1) n = maxBlockStr.lastIndexOf("\n\n");
-            if (n == -1) n = maxBlockStr.lastIndexOf("\n");
-            if (n == -1) n = maxBlockStr.lastIndexOf(". ");
-            blocks.add(full.subSequence(0, n + 1));
-            full = full.subSequence(n + 1, full.length());
-        }
-        if (full.length() > 0)
-            blocks.add(full);
-        return blocks;
-    }
-
-
-    public void showTranslateMoreView(boolean show) {
-//        translateMoreView.setClickable(show);
-//        translateMoreView.setVisibility(textBlocks.size() > 1 ? View.VISIBLE : View.GONE);
-//        translateMoreView
-//            .animate()
-////            .translationX(show ? 0f : dp(4))
-//            .alpha(show ? 1f : 0f)
-//            .withEndAction(() -> {
-//                if (!show)
-//                    translateMoreView.setVisibility(textBlocks.size() > 1 ? View.INVISIBLE : View.GONE);
-//            })
-//            .setInterpolator(CubicBezierInterpolator.EASE_OUT)
-//            .setDuration((long) (Math.abs(translateMoreView.getAlpha() - (show ? 1f : 0f)) * 85))
-//            .start();
-    }
-
     private boolean loading = false;
     private boolean loaded = false;
     private LoadingTextView lastLoadingBlock = null;
@@ -1010,49 +983,283 @@ public class TranscribeAlert extends Dialog {
             return false;
         loading = true;
 
-        showTranslateMoreView(false);
-        if (blockIndex >= textBlocks.size())
-            return false;
+        CharSequence blockText;
 
-        CharSequence blockText = textBlocks.get(blockIndex);
-        lastLoadingBlock = lastLoadingBlock == null ? addBlock(blockText, blockIndex != 0) : lastLoadingBlock;
-        lastLoadingBlock.loading = true;
+        if (this.duration <= 60) {
+            blockText = LocaleController.getString("LoadingTranscription", R.string.LoadingTranscription);
 
-        loaded = true;
-        Spannable spannable = new SpannableStringBuilder(blockText.toString());
-        allTexts = new SpannableStringBuilder(allTextsView.getText()).append(blockIndex == 0 ? "" : "\n").append(spannable);
-        if (lastLoadingBlock != null) {
-            lastLoadingBlock.setText(spannable);
-            lastLoadingBlock = null;
-        }
-        blockIndex++;
-        loading = false;
-        if (blockIndex < textBlocks.size()) {
-            CharSequence nextTextBlock = textBlocks.get(blockIndex);
-            lastLoadingBlock = addBlock(nextTextBlock, true);
-            lastLoadingBlock.loading = false;
+            lastLoadingBlock = lastLoadingBlock == null ? addBlock(blockText, false) : lastLoadingBlock;
+            lastLoadingBlock.loading = true;
+
+            fetchTranscription(
+                    (String transcribedText) -> {
+                        loaded = true;
+                        Spannable spannable = new SpannableStringBuilder(transcribedText);
+                        try {
+                            MessageObject.addUrlsByPattern(false, spannable, false, 0, 0, true);
+                            URLSpan[] urlSpans = spannable.getSpans(0, spannable.length(), URLSpan.class);
+                            for (int i = 0; i < urlSpans.length; ++i) {
+                                URLSpan urlSpan = urlSpans[i];
+                                int start = spannable.getSpanStart(urlSpan),
+                                        end = spannable.getSpanEnd(urlSpan);
+                                if (start == -1 || end == -1)
+                                    continue;
+                                spannable.removeSpan(urlSpan);
+                                spannable.setSpan(
+                                        new ClickableSpan() {
+                                            @Override
+                                            public void onClick(@NonNull View view) {
+                                                if (onLinkPress != null) {
+                                                    onLinkPress.run(urlSpan);
+                                                    fastHide = true;
+                                                    dismiss();
+                                                } else
+                                                    AlertsCreator.showOpenUrlAlert(fragment, urlSpan.getURL(), false, false);
+                                            }
+
+                                            @Override
+                                            public void updateDrawState(@NonNull TextPaint ds) {
+                                                int alpha = Math.min(ds.getAlpha(), ds.getColor() >> 24 & 0xff);
+                                                if (!(urlSpan instanceof URLSpanNoUnderline))
+                                                    ds.setUnderlineText(true);
+                                                ds.setColor(Theme.getColor(Theme.key_dialogTextLink));
+                                                ds.setAlpha(alpha);
+                                            }
+                                        },
+                                        start, end,
+                                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                                );
+                            }
+
+                            AndroidUtilities.addLinks(spannable, Linkify.WEB_URLS);
+                            urlSpans = spannable.getSpans(0, spannable.length(), URLSpan.class);
+                            for (int i = 0; i < urlSpans.length; ++i) {
+                                URLSpan urlSpan = urlSpans[i];
+                                int start = spannable.getSpanStart(urlSpan),
+                                        end = spannable.getSpanEnd(urlSpan);
+                                if (start == -1 || end == -1)
+                                    continue;
+                                spannable.removeSpan(urlSpan);
+                                spannable.setSpan(
+                                        new ClickableSpan() {
+                                            @Override
+                                            public void onClick(@NonNull View view) {
+                                                AlertsCreator.showOpenUrlAlert(fragment, urlSpan.getURL(), false, false);
+                                            }
+
+                                            @Override
+                                            public void updateDrawState(@NonNull TextPaint ds) {
+                                                int alpha = Math.min(ds.getAlpha(), ds.getColor() >> 24 & 0xff);
+                                                if (!(urlSpan instanceof URLSpanNoUnderline))
+                                                    ds.setUnderlineText(true);
+                                                ds.setColor(Theme.getColor(Theme.key_dialogTextLink));
+                                                ds.setAlpha(alpha);
+                                            }
+                                        },
+                                        start, end,
+                                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                                );
+                            }
+
+                            spannable = (Spannable) Emoji.replaceEmoji(spannable, allTextsView.getPaint().getFontMetricsInt(), dp(14), false);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        allTexts = new SpannableStringBuilder(allTextsView.getText()).append(spannable);
+
+                        if (lastLoadingBlock != null) {
+                            lastLoadingBlock.setText(spannable);
+                            lastLoadingBlock = null;
+                        }
+
+                        loading = false;
+                    },
+                    (boolean rateLimit) -> {
+                        if (rateLimit)
+                            Toast.makeText(getContext(), LocaleController.getString("TranscriptionFailedAlert1", R.string.TranscriptionFailedAlert1), Toast.LENGTH_SHORT).show();
+                        else
+                            Toast.makeText(getContext(), LocaleController.getString("TranscriptionFailedAlert2", R.string.TranscriptionFailedAlert2), Toast.LENGTH_SHORT).show();
+                    }
+            );
+        } else {
+            blockText = LocaleController.getString("VoiceMsgTooLong", R.string.VoiceMsgTooLong);
+            lastLoadingBlock = lastLoadingBlock == null ? addBlock(blockText, false) : lastLoadingBlock;
+            lastLoadingBlock.loading = true;
+
+            loaded = true;
+            Spannable spannable = new SpannableStringBuilder(blockText.toString());
+            allTexts = new SpannableStringBuilder(allTextsView.getText()).append(true ? "" : "\n").append(spannable);
+            if (lastLoadingBlock != null) {
+                lastLoadingBlock.setText(spannable);
+                lastLoadingBlock = null;
+            }
+            loading = false;
         }
 
         return true;
     }
 
-    private String[] userAgents = new String[] {
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36", // 13.5%
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36", // 6.6%
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0", // 6.4%
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0", // 6.2%
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36", // 5.2%
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36" // 4.8%
-    };
-    public interface OnTranslationSuccess {
-        public void run(String translated, String sourceLanguage);
+    public interface OnTranscriptionSuccess {
+        public void run(String transcribed);
     }
-    public interface OnTranslationFail {
+    public interface OnTranscriptionFail {
         public void run(boolean rateLimit);
     }
 
-    public static void showAlert(Context context, BaseFragment fragment, CharSequence text, boolean noforwards, OnLinkPress onLinkPress) {
-        TranscribeAlert alert = new TranscribeAlert(fragment, context, text, noforwards, onLinkPress);
+    private String getOAuthToken() throws JSONException, IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+        InputStream resourceStream = getContext().getResources().openRawResource(R.raw.gcloud_speech_to_text_credential);
+        StringBuilder builder = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resourceStream))) {
+            String line = reader.readLine();
+            while (line != null) {
+                builder.append(line);
+                line = reader.readLine();
+            }
+        }
+
+        JSONTokener tokener = new JSONTokener(builder.toString());
+        JSONObject jsonObject = new JSONObject(tokener);
+        String kid = jsonObject.getString("private_key_id");
+        String email = jsonObject.getString("client_email");
+        String privateKeyEncoded = jsonObject.getString("private_key");
+        privateKeyEncoded = privateKeyEncoded.replace("-----BEGIN PRIVATE KEY-----", "");
+        privateKeyEncoded = privateKeyEncoded.replace("-----END PRIVATE KEY-----", "");
+        privateKeyEncoded = privateKeyEncoded.replaceAll("\\s+", "");
+        long iat = Instant.now().getEpochSecond();
+        long exp = iat + 3600;
+
+        JSONObject header = new JSONObject();
+        header.put("alg", "RS256");
+        header.put("typ", "JWT");
+        header.put("kid", kid);
+
+        JSONObject payload = new JSONObject();
+        payload.put("iss", email);
+        payload.put("sub", email);
+        payload.put("aud", "https://speech.googleapis.com/");
+        payload.put("iat", iat);
+        payload.put("exp", exp);
+
+        byte[] headerEncoded = Base64.encode(header.toString().getBytes("UTF-8"), Base64.NO_WRAP);
+        byte[] payloadEncoded = Base64.encode(payload.toString().getBytes("UTF-8"), Base64.NO_WRAP);
+        byte[] jwt = new byte[headerEncoded.length + payloadEncoded.length + ".".getBytes("UTF-8").length];
+        ByteBuffer buffer = ByteBuffer.wrap(jwt);
+        buffer.put(headerEncoded);
+        buffer.put(".".getBytes("UTF-8"));
+        buffer.put(payloadEncoded);
+
+        byte[] privateKeyDecoded = Base64.decode(privateKeyEncoded, Base64.NO_WRAP);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyDecoded);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        PrivateKey privateKey = kf.generatePrivate(keySpec);
+
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initSign(privateKey);
+        signature.update(buffer.array());
+        byte[] signatureBytes = signature.sign();
+
+        StringBuilder builder1 = new StringBuilder();
+        builder1.append(Base64.encodeToString(headerEncoded, Base64.NO_WRAP));
+        builder1.append(".");
+        builder1.append(Base64.encodeToString(payloadEncoded, Base64.NO_WRAP));
+        builder1.append(".");
+        builder1.append(Base64.encodeToString(signatureBytes, Base64.NO_WRAP));
+
+        return builder1.toString();
+    }
+
+    private long minFetchingDuration = 5000;
+    private String API_KEY = "a4db08b7-5729-4ba9-8c08-f2df493465a1";
+    private void fetchTranscription(TranscribeAlert.OnTranscriptionSuccess onSuccess, TranscribeAlert.OnTranscriptionFail onFail) {
+        new Thread() {
+            @Override
+            public void run() {
+                String uri = "";
+                HttpURLConnection connection = null;
+                long start = SystemClock.elapsedRealtime();
+                try {
+                    uri = "https://speech.googleapis.com/v1/speech:recognize?key=";
+                    uri += Uri.encode(API_KEY);
+                    uri += "&access_token=";
+                    uri += Uri.encode(getOAuthToken());
+                    connection = (HttpURLConnection) new URI(uri).toURL().openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setDoInput(true);
+                    connection.setDoOutput(true);
+                    connection.setRequestProperty("Accept", "application/json");
+                    connection.setRequestProperty("Content-Type", "application/json");
+
+                    FileInputStream fileInputStreamReader = new FileInputStream(file);
+                    byte[] bytes = new byte[(int) file.length()];
+                    fileInputStreamReader.read(bytes);
+
+                    JSONObject body = new JSONObject();
+                    JSONObject config = new JSONObject();
+                    JSONObject audio = new JSONObject();
+                    config.put("languageCode", LocaleController.getLocaleStringIso639());
+                    config.put("encoding", "OGG_OPUS");
+                    config.put("sampleRateHertz", 16000);
+                    config.put("model", "default");
+                    audio.put("content", Base64.encodeToString(bytes, Base64.NO_WRAP));
+                    body.put("config", config);
+                    body.put("audio", audio);
+
+                    String jsonInputString = body.toString();
+                    try (OutputStream os = connection.getOutputStream()) {
+                        byte[] input = jsonInputString.getBytes(Charset.forName("UTF-8"));
+                        os.write(input, 0, input.length);
+                    }
+
+                    StringBuilder textBuilder = new StringBuilder();
+                    try (Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), Charset.forName("UTF-8")))) {
+                        int c = 0;
+                        while ((c = reader.read()) != -1) {
+                            textBuilder.append((char) c);
+                        }
+                    }
+                    String jsonString = textBuilder.toString();
+
+                    JSONTokener tokener = new JSONTokener(jsonString);
+                    JSONArray results = (JSONArray) new JSONObject(tokener).get("results");
+                    JSONArray alternatives = (JSONArray) results.getJSONObject(0).get("alternatives");
+                    final String result = (String) alternatives.getJSONObject(0).get("transcript");
+
+                    long elapsed = SystemClock.elapsedRealtime() - start;
+                    if (elapsed < minFetchingDuration)
+                        sleep(minFetchingDuration - elapsed);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        if (onSuccess != null)
+                            onSuccess.run(result);
+                    });
+                } catch (Exception e) {
+                    try {
+                        Log.e("transcribe", "failed to transcribe an audio " + (connection != null ? connection.getResponseCode() : null) + " " + (connection != null ? connection.getResponseMessage() : null));
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                    e.printStackTrace();
+
+                    if (onFail != null && !dismissed) {
+                        try {
+                            final boolean rateLimit = connection != null && connection.getResponseCode() == 429;
+                            AndroidUtilities.runOnUIThread(() -> {
+                                onFail.run(rateLimit);
+                            });
+                        } catch (Exception e2) {
+                            AndroidUtilities.runOnUIThread(() -> {
+                                onFail.run(false);
+                            });
+                        }
+                    }
+                }
+            }
+        }.start();
+    }
+
+    public static void showAlert(Context context, BaseFragment fragment, File file, int duration, boolean noforwards, OnLinkPress onLinkPress) {
+        TranscribeAlert alert = new TranscribeAlert(fragment, context, file, duration, noforwards, onLinkPress);
         if (fragment != null) {
             if (fragment.getParentActivity() != null) {
                 fragment.showDialog(alert);
