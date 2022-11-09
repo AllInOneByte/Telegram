@@ -2294,6 +2294,13 @@
     <string name="PassportRequiredDocuments">Documentos necesarios</string>
     <string name="PassportSelfieInfo">Sube una selfie tuya sosteniendo el documento</string>
     <string name="PassportTranslation">Traducción</string>
+    <string name="TranscriptionFailedAlert1">La transcripción ha fallado. Inténtalo de nuevo más tarde.</string>
+    <string name="TranscriptionFailedAlert2">La transcripción ha fallado.</string>
+    <string name="LoadingTranscription">Cargando transcripción...</string>
+    <string name="VoiceMsgTooLong">El audio es demasiado largo (el máximo es de 60 segundos)</string>
+    <string name="AutomaticTranscription">Transcripción automática</string>
+    <string name="CloseTranscription">Cerrar transcripción</string>
+    <string name="TranscribeMessage">Transcribir</string>
     <string name="PassportFrontSide">Lado delantero</string>
     <string name="PassportFrontSideInfo">Sube una foto del lado delantero del documento</string>
     <string name="PassportReverseSide">Reverso</string>
